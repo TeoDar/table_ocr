@@ -1,0 +1,23 @@
+{
+    // Используйте IntelliSense, чтобы узнать о возможных атрибутах.
+    // Наведите указатель мыши, чтобы просмотреть описания существующих атрибутов.
+    // Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: FastAPI",
+            "type": "python",
+            "request": "launch",
+            "module": "fastapi",
+            "env": {
+                "TESSDATA_PREFIX": "./tessdata",
+                "TESSERACT_CMD": "C:/Program Files/Tesseract-OCR/tesseract.exe"
+            },
+            "args": [
+                "run",
+                "--no-debugger"
+            ],
+            "jinja": true
+        }
+    ]
+}
