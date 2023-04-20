@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI, UploadFile, File, Response, HTTPException
+from fastapi.responses import FileResponse
 from hashlib import md5
-import base64
 from Recognition import pdf_to_json
 from PDFtoPNG import *
 
@@ -11,17 +11,16 @@ root_path = f'D:/Users/Teos/Documents/OCR/Uploads'
 os.makedirs(os.path.dirname(root_path+'/'), exist_ok=True)
 
 app = FastAPI()
-base_url = '/api/2.0'
 
 
-@app.post(f'{base_url}/faultreport')
+@app.post(f'/faultreport')
 async def KAN_to_pdf(file: UploadFile = File()):
     '''API для полного преобразования PDF сканированных КАНов в атрибуты MES'''
     json = pdf_to_json(file.file.read())
     return Response(content=json, media_type='application/json')
 
 
-@app.post(f'{base_url}/upload_file')
+@app.post(f'/upload_file')
 async def upload_file(file: UploadFile):
     '''Загрузка выбранного файла на сервер'''
     file_bytes: bytes = file.file.read()
@@ -47,9 +46,7 @@ async def upload_file(file: UploadFile):
 
 @app.get(f'{base_url}/get_image/'+'{file_hash}/'+'{img_hash}')
 async def get_image(file_hash:str, img_hash:str):
-    try:
-        with open(f'{root_path}/{file_hash}/{img_hash}.png', 'rb') as img:
-            return Response(content=base64.b64encode(img.read()), media_type="image/png")
+    try: return FileResponse(f'{root_path}/{file_hash}/{img_hash}.png')
     except: raise HTTPException(status_code=404, detail='Файл изображения не найден. Попробуйте загрузить файл заного.')
 
 #@app.get(f'{base_url}/get_image/'+'{file_hash}/'+'{img_hash}')
