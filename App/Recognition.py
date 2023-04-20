@@ -15,7 +15,7 @@ if os.name == 'nt':
     os.environ['TESSDATA_PREFIX'] = 'C:/Program Files/Tesseract-OCR/tessdata'
     os.environ['TESSERACT_CMD'] = 'C:/Program Files/Tesseract-OCR/tesseract.exe'
 
-def pdf_to_json(file) -> dict:
+def pdf_to_json(file: bytes, filename:str) -> dict:
     """Обрабатывает PDF файлы и возвращает JSON с распознанным из заданных ячеек текстом    
 
     Args:
@@ -25,17 +25,12 @@ def pdf_to_json(file) -> dict:
     """
 
     textFromCells = {}
-    iter = 0
     indent = 5  # Отступ координат к центру ячейки
 
     # Преобразуем исходные сканы в формате PDF в изображения PNG
-    pngPages = PDFtoPNG.extraction_images(file)
-    # Если изображения не были найдены в PDF файле, то вернуть HTML код 400
-    if pngPages == []:
-        return 400
+    pngPages = PDFtoPNG.extraction_images(file, filename)
     # Проходимся по каждому изображению полученному из PDF файла
-    for img in pngPages:
-        iter += 1   # Счётчик изображений
+    for id, img in enumerate(pngPages):
 
         # Получение изображения в серых тонах
         gray = ImageProcessing.gray(img)
@@ -46,7 +41,7 @@ def pdf_to_json(file) -> dict:
         tableBox = TableBorders.findContour(tableLines)
 
         # Приведение изображения и контуров таблицы к вертикали
-        rotation = Rotation.deskew(img, tableBox, tableLines, iter)
+        rotation = Rotation.deskew(img, tableBox, tableLines, id)
         # Разделение повёрнутых результатов
         rotatedImg, rotatedTableLines, angle = rotation
         # Нахождение повёрнутого Box для таблицы и его отрисовка
@@ -57,9 +52,6 @@ def pdf_to_json(file) -> dict:
         croppedTableLines = ImageProcessing.crop(rotatedTableLines, rotatedTableBox, indent)
         # Последняя цифра это значение добавочных пикселей к краям обрезк
         croppedImg = ImageProcessing.crop(rotatedImg, rotatedTableBox, indent)
-
-        # Получение вручную определённых координат ячеек
-        # coordinates = CellsCoordinates.getCoords(croppedImg, iter)
 
         # Получение координат ячеек таблицы
         cells = CellsSelecting.divideTable(croppedTableLines)

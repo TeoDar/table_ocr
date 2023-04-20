@@ -1,4 +1,5 @@
 import os
+from traceback import format_exc
 from fastapi import FastAPI, UploadFile, File, Response, HTTPException
 from fastapi.responses import FileResponse
 from hashlib import md5
@@ -14,9 +15,11 @@ app = FastAPI()
 
 
 @app.post(f'/faultreport')
-async def KAN_to_pdf(file: UploadFile = File()):
+async def KAN_to_pdf(file: UploadFile):
     '''API для полного преобразования PDF сканированных КАНов в атрибуты MES'''
-    json = pdf_to_json(file.file.read())
+    file_bytes: bytes = file.file.read()
+    file_name: str = file.filename
+    json = pdf_to_json(file_bytes, file_name)
     return Response(content=json, media_type='application/json')
 
 
@@ -39,12 +42,14 @@ async def upload_file(file: UploadFile):
     file_path:str = f'{root_path}/{file_hash}/'
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     try: extracted_images_hashes:list = save_images_from_bytes(file_path, images)
-    except: os.removedirs(os.path.dirname(file_path))
+    except:
+        print(format_exc())
+        raise HTTPException(status_code=404, detail='Файл изображения не найден. Попробуйте загрузить файл заного.')
     # Вычисление md5
     return {"file_hash": file_hash, "extracted_images_hashes": extracted_images_hashes}
 
 
-@app.get(f'{base_url}/get_image/'+'{file_hash}/'+'{img_hash}')
+@app.get(f'/get_image/'+'{file_hash}/'+'{img_hash}')
 async def get_image(file_hash:str, img_hash:str):
     try: return FileResponse(f'{root_path}/{file_hash}/{img_hash}.png')
     except: raise HTTPException(status_code=404, detail='Файл изображения не найден. Попробуйте загрузить файл заного.')

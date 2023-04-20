@@ -1,1 +1,0 @@
-border-radius: 4px; width: 292px; height: 210px; background-image: url(data:image/png;base64,{image}); background-size: 100%;
