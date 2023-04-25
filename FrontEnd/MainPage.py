@@ -18,30 +18,16 @@ class MainPage:
         # Добавление бокового меню
         with st.sidebar:
             self.draw_side_bar()
-
         if self.selected in 'Шаблоны':
             st.title("Создание шаблона распознавания")
             st.header('Загрузите скан:')
             uploaded_file = st.file_uploader('Только для типов [PDF] и [PNG]', type=('pdf', 'png'))
             if uploaded_file:
                 self.upload(uploaded_file)
-
         if self.selected in 'Связаться с разработчиком':
             webbrowser.open_new_tab('https://t.me/TeoDar')
-
         if self.selected in 'test':
-            # test
-            test_file = st.file_uploader('Только для типов [PDF] и [PNG]', type=('pdf', 'png'))
-            if test_file:
-                try:
-                    file = {"file": (test_file.name, test_file.getvalue())}
-                    response = requests.post(f"{fast_api_url}/faultreport", files=file)
-                    response.raise_for_status()
-                    st.write(response.json())
-                except requests.exceptions.HTTPError as err:
-                    st.write(err.response.status_code, ':', err.response.json()['detail'])
-            with open('./FrontEnd/test.html', encoding='utf-8') as f:
-                st.markdown(f.read(), unsafe_allow_html=True,)
+            self.test()
 
     def draw_side_bar(self):
         self.selected = option_menu(
@@ -74,13 +60,26 @@ class MainPage:
         for img_hash in extracted_images_hashes:
             image_link = f"{fast_api_url}/get_image/{file_hash}/{img_hash}"
             with st.sidebar:
-                with open('./FrontEnd/button.html') as f:
+                with open('./FrontEnd/button.html', encoding='utf-8') as f:
                     button_html = f.read().replace('src=""', f'src="{image_link}"')
                     st.markdown(button_html, unsafe_allow_html=True,)
-            with open('./FrontEnd/image_style.txt') as f:
-                image_style = f.read()
+            with open('./FrontEnd/image.html', encoding='utf-8') as f:
+                image_style = f.read().replace('url()', f'url({image_link})')
                 image_html = f'<img src="{image_link}" style="{image_style}">'
                 st.markdown(image_html, unsafe_allow_html=True)
+
+    def test(self):
+        test_file = st.file_uploader('Только для типов [PDF] и [PNG]', type=('pdf', 'png'))
+        if test_file:
+            try:
+                file = {"file": (test_file.name, test_file.getvalue())}
+                response = requests.post(f"{fast_api_url}/faultreport", files=file)
+                response.raise_for_status()
+                st.write(response.json())
+            except requests.exceptions.HTTPError as err:
+                st.write(err.response.status_code, ':', err.response.json()['detail'])
+        with open('./FrontEnd/test.html', encoding='utf-8') as f:
+            st.markdown(f.read(), unsafe_allow_html=True,)
 
 
 if __name__ == "__main__":
