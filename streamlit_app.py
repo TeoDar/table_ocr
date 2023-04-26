@@ -1,12 +1,13 @@
-from env import *
-
+from App import HOST, PORT
 import requests
 import streamlit as st
 from streamlit_option_menu import option_menu
 import webbrowser
 
+SERVER_URL = f'http://{HOST}:{PORT}'
 
-class MainPage:
+
+class WebPage:
     '''
     Красс реализующий основное окно приложения
     '''
@@ -23,6 +24,8 @@ class MainPage:
             uploaded_file = st.file_uploader('Только для типов [PDF] и [PNG]', type=('pdf', 'png'))
             if uploaded_file:
                 self.upload(uploaded_file)
+        if self.selected in 'Справка':
+            webbrowser.open_new_tab('http://127.0.0.1:8000/docs')
         if self.selected in 'Связаться с разработчиком':
             webbrowser.open_new_tab('https://t.me/TeoDar')
         if self.selected in 'test':
@@ -59,10 +62,10 @@ class MainPage:
         for img_hash in extracted_images_hashes:
             image_link = f"{SERVER_URL}/get_image/{file_hash}/{img_hash}"
             with st.sidebar:
-                with open('./FrontEnd/button.html', encoding='utf-8') as f:
+                with open('./FrontEnd/html/button.html', encoding='utf-8') as f:
                     button_html = f.read().replace('src=""', f'src="{image_link}"')
                     st.markdown(button_html, unsafe_allow_html=True,)
-            with open('./FrontEnd/image.html', encoding='utf-8') as f:
+            with open('./FrontEnd/html/image.html', encoding='utf-8') as f:
                 image_style = f.read().replace('url()', f'url({image_link})')
                 image_html = f'<img src="{image_link}" style="{image_style}">'
                 st.markdown(image_html, unsafe_allow_html=True)
@@ -77,9 +80,9 @@ class MainPage:
                 st.write(response.json())
             except requests.exceptions.HTTPError as err:
                 st.write(err.response.status_code, ':', err.response.json()['detail'])
-        with open('./FrontEnd/test.html', encoding='utf-8') as f:
+        with open('.App/FrontEnd/html/test.html', encoding='utf-8') as f:
             st.markdown(f.read(), unsafe_allow_html=True,)
 
 
 if __name__ == "__main__":
-    MainPage()
+    WebPage()

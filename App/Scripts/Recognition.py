@@ -1,4 +1,4 @@
-from App.imports import *
+from Scripts._imports import *
 
 def pdf_to_json(file: bytes, filename:str) -> dict:
     """Обрабатывает PDF файлы и возвращает JSON с распознанным из заданных ячеек текстом    
