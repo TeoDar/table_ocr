@@ -27,7 +27,7 @@ def save_images_from_bytes(path: str, images: list, img_md5:str=None):
     imgs_md5 = []
     from hashlib import md5
     for img in images:
-        if not img_md5: img_md5 = md5(img).hexdigest()
+        img_md5 = md5(img).hexdigest()
         imgs_md5.append(img_md5)
         file_path = f'{path}{img_md5}.png'
         img = Image.fromarray(img)

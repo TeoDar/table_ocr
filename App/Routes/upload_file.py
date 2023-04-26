@@ -11,10 +11,10 @@ async def upload_file(file: UploadFile):
     file_hash: str = md5(file_bytes).hexdigest()
 
     # Проверка на существование такого-же файла
-    if file_hash in os.listdir(ROOT_PATH):
-        extracted_images_hashes = [_[:-4] for _ in os.listdir(ROOT_PATH+f'/{file_hash}')]
-        if extracted_images_hashes:
-            return {"file_hash": file_hash,"extracted_images_hashes": extracted_images_hashes}
+    # if file_hash in os.listdir(ROOT_PATH):
+    #     extracted_images_hashes = [_[:-4] for _ in os.listdir(ROOT_PATH+f'/{file_hash}')]
+    #     if extracted_images_hashes:
+    #         return {"file_hash": file_hash,"extracted_images_hashes": extracted_images_hashes}
     
     # Извлечение изображения
     images:list = extraction_images(file=file_bytes, filename=file_name)
