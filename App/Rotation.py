@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-def deskew(img, tableBox, tableLines, iter):
+def deskew(img, tableBox, tableLines, page):
     # Изначальная версия получения угла
     # Вычисление координат участков изображения с положительным порогом
     #coords = np.column_stack(np.where(lines>0))
@@ -30,5 +30,5 @@ def deskew(img, tableBox, tableLines, iter):
     rotatedLines = cv2.warpAffine(tableLines, rotationMatrix, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
     # Можно нарисовать угол изменения прям на изображении
     #cv2.putText(rotated, f'Angle: {angle} degrees', center, cv2.FONT_ITALIC, 1, (0, 0, 180), 2)
-    print(f'[INFO] page №{iter+1}\n  Deskewing angle: {round(angle)}')
+    print(f'[INFO] page №{page+1}\n  Deskewing angle: {round(angle)}')
     return [rotatedImg, rotatedLines, angle]

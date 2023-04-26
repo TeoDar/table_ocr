@@ -1,10 +1,9 @@
+from env import *
+
 import requests
 import streamlit as st
 from streamlit_option_menu import option_menu
 import webbrowser
-
-
-fast_api_url = 'http://127.0.0.1:8000'
 
 
 class MainPage:
@@ -48,7 +47,7 @@ class MainPage:
         file = {"file": (uploaded_file.name, uploaded_file.getvalue())}
         with st.spinner('Загрузка файла и извлечение изображений'):
             try:
-                response = requests.post(f"{fast_api_url}/upload_file", files=file)
+                response = requests.post(f"{SERVER_URL}/upload_file", files=file)
                 response.raise_for_status()
             except requests.exceptions.HTTPError as err:
                 st.write(err.response.status_code, ':', err.response.json()['detail'])
@@ -58,7 +57,7 @@ class MainPage:
         extracted_images_hashes: list = response.json()["extracted_images_hashes"]
 
         for img_hash in extracted_images_hashes:
-            image_link = f"{fast_api_url}/get_image/{file_hash}/{img_hash}"
+            image_link = f"{SERVER_URL}/get_image/{file_hash}/{img_hash}"
             with st.sidebar:
                 with open('./FrontEnd/button.html', encoding='utf-8') as f:
                     button_html = f.read().replace('src=""', f'src="{image_link}"')
@@ -73,7 +72,7 @@ class MainPage:
         if test_file:
             try:
                 file = {"file": (test_file.name, test_file.getvalue())}
-                response = requests.post(f"{fast_api_url}/faultreport", files=file)
+                response = requests.post(f"{SERVER_URL}/faultreport", files=file)
                 response.raise_for_status()
                 st.write(response.json())
             except requests.exceptions.HTTPError as err:

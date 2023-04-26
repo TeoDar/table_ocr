@@ -1,16 +1,13 @@
-import os
+from imports import *
 import re
-
-import cv2
 import pytesseract
-
 import ImageProcessing
 
 
 def searchText(img, atributesToCoordinates, textFromCells):
-    path = os.environ['TESSDATA_PREFIX']
+    path = os.getenv("TESSDATA_PREFIX")
     if os.name == 'nt':
-        pytesseract.pytesseract.tesseract_cmd = os.environ['TESSERACT_CMD']
+        pytesseract.pytesseract.tesseract_cmd = os.getenv("TESSERACT_CMD")
     # Преобразование цветов в серые тона
     gray = ImageProcessing.gray(img)
     # Адаптивное удаление шумов и теней
