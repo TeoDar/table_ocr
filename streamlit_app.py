@@ -1,14 +1,31 @@
 from App import HOST, PORT
-import requests
-import streamlit as st
-from streamlit_option_menu import option_menu
 import webbrowser
 
+import requests
+
+import streamlit as st
+from streamlit_option_menu import option_menu
+from st_click_detector import click_detector
+
 SERVER_URL = f'http://{HOST}:{PORT}'
+session = requests.Session()
 
 if 'npage' not in st.session_state:
     st.session_state['npage'] = 0
+if 'clicked' not in st.session_state:
+    st.session_state['clicked'] = None
 
+
+def st_request_error_wrapper(func):
+        def wrapper(*args, **kwargs):
+            try:
+                response = func(*args, **kwargs)
+                response.raise_for_status()
+                return response.json()
+            except requests.exceptions.HTTPError as err:
+                st.write(err.response.status_code, err.response.json()['detail'])
+                st.stop()
+        return wrapper
 
 class WebPage:
     '''
@@ -28,76 +45,54 @@ class WebPage:
                 st.header('Загрузите скан:')
                 uploaded_file = st.file_uploader('Только для типов [PDF] и [PNG]', type=('pdf', 'png'))
             if uploaded_file:
-                self.session = requests.Session()
                 self.upload(uploaded_file)
-        if self.selected in 'Справка':
+        if self.selected in 'API Справка':
             webbrowser.open_new_tab('http://127.0.0.1:8000/docs')
-        if self.selected in 'Связаться с разработчиком':
+        if self.selected in 'Разработчик':
             webbrowser.open_new_tab('https://t.me/TeoDar')
-        if self.selected in 'test':
+        if self.selected in 'Тест':
             self.test()
+
+    def upload(self, file):
+        file = {"file": (file.name, file.getvalue())}
+        with st.spinner('Загрузка файла и извлечение изображений'):
+            upload_result = self.request(method='file_post', url=f"{SERVER_URL}/upload_file", file=file)
+            st.write(upload_result)
+    
+    @st_request_error_wrapper
+    def request(self, method:str, url:str, *args, **kwargs) -> str:
+        if method=='file_post':
+            return session.post(url, files=kwargs)
+        
+    def get_view(self, url:str) -> str:
+        try:
+            response = session.get(url)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as err:
+            st.write(err.response.status_code, err.response.json()['detail'])
+            st.stop()
 
     def draw_side_bar(self):
         self.selected = option_menu(
             menu_title="TABLE-OCR",
-            options=["Шаблоны", "Распознавание", "Справка", "Связаться с разработчиком", "test"],
+            options=["Шаблоны", "Распознавание", "API Справка", "Разработчик", "Тест"],
             default_index=0,
             menu_icon="table",
             icons=['border', 'eye', 'book', 'person lines fill'],
             styles={
-                "container": {"background-color": "rgb(14, 17, 23)"},
+                #"container": {"background-color": "rgb(14, 17, 23)"},
                 # "icon": {"color": "#ffb4b4", "font-size": "25px"},
                 "nav-item": {"padding": "2px"},
-                "nav-link": {"margin": "0px", "--hover-color": "#eee"},
+                "nav-link": {"margin": "0px", "--hover-color": "gray"},
                 "nav-link-selected": {"background-color": "gray"},
             })
 
-    def upload(self, uploaded_file):
-        file = {"file": (uploaded_file.name, uploaded_file.getvalue())}
-        with st.spinner('Загрузка файла и извлечение изображений'):
-            try:
-                response = self.session.post(f"{SERVER_URL}/upload_file", files=file)
-                response.raise_for_status()
-            except requests.exceptions.HTTPError as err:
-                st.write(err.response.status_code, ':', err.response.json()['detail'])
-                st.stop()
-        col1, col2 = st.columns(2)
-        file_hash: str = response.json()["file_hash"]
-        extracted_images_hashes: list = response.json()["extracted_images_hashes"]
-        st.write(extracted_images_hashes)
-        image_button = None
-
-        for id, img_hash in enumerate(extracted_images_hashes):
-            image_link = f"{SERVER_URL}/get_image/{file_hash}/{img_hash}"
-            with st.sidebar:
-                with open('./App/FrontEnd/html/button.html', encoding='utf-8') as f:
-                    with col1:
-                        button_html = f.read().replace('src=""', f'src="{image_link}"')
-                        st.markdown(button_html, unsafe_allow_html=True,)
-                    with col2:
-                        st.button(f'{id} страница', on_click=lambda x: self.change_image(npage=id))
-
-
-    def change_image(self, npage):
-        st.session_state.npage = npage
-        
-        st.markdown(image_style, unsafe_allow_html=True)
-
-
     def test(self):
-        test_file = st.file_uploader('Только для типов [PDF] и [PNG]', type=('pdf', 'png'))
-        if test_file:
-            try:
-                file = {"file": (test_file.name, test_file.getvalue())}
-                response = self.session.post(f"{SERVER_URL}/faultreport", files=file)
-                response.raise_for_status()
-                st.write(response.json())
-            except requests.exceptions.HTTPError as err:
-                st.write(err.response.status_code, ':', err.response.json()['detail'])
         with open('./App/FrontEnd/html/test.html', encoding='utf-8') as f:
-            f = f.read().replace('url()', f'url(file://localhost/C:/PROJECTS/table_ocr/App/Test/9f826a2450c8e77f6bc5a7e51fdd8c02.png)')
-            st.markdown(f, unsafe_allow_html=True,)
-
+            st.session_state.clicked = click_detector(f.read())
+            st.write(st.session_state.clicked)
+#           <p><a href='#' id='Link 2'>Second link</a></p>
 
 if __name__ == "__main__":
     WebPage()

@@ -1,8 +1,11 @@
-from io import BytesIO
 import os
-from PIL import Image
-from pdf2image import convert_from_bytes
+from io import BytesIO
+from hashlib import md5
+
 import numpy as np
+from PIL import Image
+
+from pdf2image import convert_from_bytes
 
 supported_filetypes = ('pdf', 'png')
 
@@ -14,7 +17,7 @@ def extraction_images(file: bytes, filename: str) -> list:
     if filetype not in supported_filetypes:
         return None
     elif filetype == 'png':
-        return [file]
+        return [np.array(Image.open(BytesIO(file)))]
     else:
         images = []
         pages = convert_from_bytes(file, poppler_path='D:/Program Files/poppler-0.68.0/bin')
@@ -23,9 +26,10 @@ def extraction_images(file: bytes, filename: str) -> list:
         return images
 
 
-def save_images_from_bytes(path: str, images: list, img_md5:str=None):
+def save_images_from_bytes(path: str, images: list):
+    # Проверка на существование папки для сохранения
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     imgs_md5 = []
-    from hashlib import md5
     for img in images:
         img_md5 = md5(img).hexdigest()
         imgs_md5.append(img_md5)
