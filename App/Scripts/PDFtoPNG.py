@@ -1,3 +1,4 @@
+from App.Scripts import POPPLER
 import os
 from io import BytesIO
 from hashlib import md5
@@ -20,7 +21,7 @@ def extraction_images(file: bytes, filename: str) -> list:
         return [np.array(Image.open(BytesIO(file)))]
     else:
         images = []
-        pages = convert_from_bytes(file, poppler_path='D:/Program Files/poppler-0.68.0/bin')
+        pages = convert_from_bytes(file, poppler_path=POPPLER)
         for page in pages:
             images.append(np.array(page))
         return images
