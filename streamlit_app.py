@@ -2,6 +2,7 @@ from App import HOST, PORT
 import webbrowser
 
 import requests
+from PIL import Image
 
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -10,10 +11,10 @@ from st_click_detector import click_detector
 SERVER_URL = f'http://{HOST}:{PORT}'
 session = requests.Session()
 
-if 'extracted' not in st.session_state:
-    st.session_state['extracted'] = None
+if 'cur_image' not in st.session_state:
+    st.session_state.cur_image = 0
 if 'clicked' not in st.session_state:
-    st.session_state['clicked'] = None
+    st.session_state.clicked = None
 
 
 def st_request_error_wrapper(func):
@@ -48,7 +49,9 @@ class WebPage:
             if uploaded_file:
                 upload_result = self.upload(uploaded_file)
             if upload_result:
-                self.get_image(upload_result)
+            #    self.get_image(upload_result)
+                self.get_template(upload_result)
+
 
         if self.selected in 'API Справка':
             webbrowser.open_new_tab('http://127.0.0.1:8000/docs')
@@ -71,11 +74,21 @@ class WebPage:
         Функция получения извлечённых изображений.
         '''
         upload_result = upload_result.json()
-        file_hash, extracted = upload_result['file_hash'], upload_result['extracted']
+        file_hash, extracted = upload_result['file_hash'], upload_result['extracted']        
         for img in extracted:
-            with st.spinner('Загрузка файла и извлечение изображений'):
-                st.markdown(f'<img src="{SERVER_URL}/get_image/{file_hash}/{img}">', unsafe_allow_html=True)
+            img = self.request(method='get', url=f'{SERVER_URL}/get_image/{file_hash}/{img}')
+            st.image(img.content)
 
+    def get_template(self, upload_result:dict)->str:
+        '''
+        Функция получения извлечённых изображений.
+        '''
+        upload_result = upload_result.json()
+        file_hash, extracted = upload_result['file_hash'], upload_result['extracted']
+        st.write(extracted)
+        for img in extracted:
+            img = self.request(method='get', url=f'{SERVER_URL}/get_template/{file_hash}/{img}')
+            st.image(img.content)
     
     @st_request_error_wrapper
     def request(self, method:str, url:str, *args, **kwargs) -> str:

@@ -27,12 +27,13 @@ def extraction_images(file: bytes, filename: str) -> list:
         return images
 
 
-def save_images_from_bytes(path: str, images: list):
+def save_images(path: str, images: list, img_hash=None):
     # Проверка на существование папки для сохранения
     os.makedirs(os.path.dirname(path), exist_ok=True)
     imgs_md5 = []
     for img in images:
-        img_md5 = md5(img).hexdigest()
+        if not img_hash: img_md5 = md5(img).hexdigest()
+        else: img_md5 = img_hash
         imgs_md5.append(img_md5)
         file_path = f'{path}{img_md5}.png'
         img = Image.fromarray(img)
@@ -47,7 +48,7 @@ def test():
     test_file = '21-4504-021.pdf'
     with open(test_path + test_file, 'rb') as png:
         images = extraction_images(file=png.read(), filename=test_file)
-        save_images_from_bytes('C:/PROJECTS/ocr/App/', images)
+        save_images('C:/PROJECTS/ocr/App/', images)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 from App.Routes import *
-from App.Scripts.PDFtoPNG import extraction_images, save_images_from_bytes
+from App.Scripts.PDFtoPNG import extraction_images, save_images
 
 router = APIRouter()
 
@@ -13,10 +13,11 @@ async def upload_file(file: UploadFile):
     # Проверка на существование такого-же файла
     extracted = None
     if file_hash in os.listdir(ROOT_PATH):
-        extracted = [_[:-4] for _ in os.listdir(ROOT_PATH+f'/{file_hash}')]
+        print('[File already exits]')
+        extracted = [_[:-4] for _ in os.listdir(ROOT_PATH+f'/{file_hash}') if 'cropped' not in _]
     if not extracted:
         # Извлечение и сохранение изображения
         try: images:list = extraction_images(file=file_bytes, filename=file_name)
         except: raise HTTPException(status_code=500, detail=f'Не удалось извлечь изображения: {exc()}')
-        extracted:list = save_images_from_bytes(path=f'{ROOT_PATH}/{file_hash}/', images=images)
+        extracted:list = save_images(path=f'{ROOT_PATH}/{file_hash}/', images=images)
     return {"file_hash": file_hash, "extracted": extracted}

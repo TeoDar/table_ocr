@@ -1,4 +1,14 @@
-from Scripts._imports import *
+from App.Scripts import *
+import App.Scripts.PDFtoPNG as PDFtoPNG
+import App.Scripts.ImageProcessing as ImageProcessing
+import App.Scripts.LinesSelecting as LinesSelecting
+import App.Scripts.TableBorders as TableBorders
+import App.Scripts.Rotation as Rotation
+import App.Scripts.CellsSelecting as CellsSelecting
+import App.Scripts.SortCells as SortCells
+import App.Scripts.ToMESAtributes as ToMESAtributes
+import App.Scripts.OCR as OCR
+import App.Scripts.TextToJSON as TextToJSON
 
 def pdf_to_json(file: bytes, filename:str) -> dict:
     """Обрабатывает PDF файлы и возвращает JSON с распознанным из заданных ячеек текстом    

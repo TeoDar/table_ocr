@@ -9,6 +9,7 @@ def drawCells(copyImg, row, numRow):
     cv2.putText(copyImg, f'{numRow}', row[0][3], cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2, cv2.LINE_AA)
     for i in range(len(row)):
         cv2.putText(copyImg, f'{i+1}', (row[i][1][0]-15, row[i][1][1]+18), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2, cv2.LINE_AA)
+    return copyImg
 
 def cellSorting(img, cells):
     """Функция сортирует полученный массив ячеек по строкам (по уровням ячеек)
@@ -20,21 +21,23 @@ def cellSorting(img, cells):
         [Array]:
     """
     
-    copyImg = img.copy()
     
     cellsByRow = []
     row = []
     cells = sorted(cells , key=lambda k: [k[3][1], k[3][0]]) # Сортировка сначала по "y" потом по "x"
-    prev_y = cells[0][2][1] # Координата "y" первой ячейки
-    
+    try:
+        prev_y = cells[0][2][1] # Координата "y" первой ячейки
+    except:
+        return None
     for i, cell in enumerate(cells):
         y = cell[2][1]
         if y>prev_y+5: # Условие начала новой строки
             row = sorted(row, key=lambda k: k[3][0])
             cellsByRow.append(row) # Дополнительная сортировка по х в каждой строке
             
-            # Выделить строки разными цветами
-            drawCells(copyImg, row, len(cellsByRow))
+            # copyImg = img.copy()
+            # # Выделить строки разными цветами
+            # drawCells(copyImg, row, len(cellsByRow))
             
             row = []
         row.append(cell)
@@ -45,5 +48,5 @@ def cellSorting(img, cells):
     # cv2.imshow(f"rows", copyImg)
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
-    print(f'  Number of recognated rows: {len(cellsByRow)}, cells: {i}')
+    #print(f'  Number of recognated rows: {len(cellsByRow)}, cells: {i}')
     return cellsByRow
